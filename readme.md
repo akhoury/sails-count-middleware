@@ -1,6 +1,6 @@
 
 # sails-count-middleware
-Find the count by criteria by adding an 'X-Total-Count' header for all blueprints 'find' calls
+Find the count by criteria by adding an `X-Total-Count` header for all blueprints `find` calls
 
 # Sails version support
 It only supports __Sails 1.x__
