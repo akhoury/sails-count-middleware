@@ -1,7 +1,7 @@
 {
   "name": "sails-count-middleware",
-  "version": "1.0.1",
-  "description": "",
+  "version": "1.0.2",
+  "description": "While paginating, find the total count by criteria, via an added `X-Total-Count` header to all blueprints `find` requests",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,6 +19,8 @@
   "keywords": [
     "sails",
     "paginate",
+    "pagination",
+    "x-total-count",
     "count",
     "total"
   ]
