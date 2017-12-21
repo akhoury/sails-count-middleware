@@ -4,7 +4,7 @@
 const generate = (options = {}) => {
 
     let headerKey = options.headerKey || 'X-Total-Count';
-    let blueprintActions = [...['find'], ...(options.blueprintActions || [])].reduce((hash, key) => { hash[key] = true; return hash; }, {});
+    let blueprintActions = [...(options.blueprintActions || ['find'])].reduce((hash, key) => { hash[key] = true; return hash; }, {});
 
     let middleware = function (req, res, next) {
         let now = !!(req.options && req.options.blueprintAction);
@@ -24,13 +24,18 @@ const generate = (options = {}) => {
         }
 
         let addCountThenSendOrNext = function(data) {
-            if (!req.options || !blueprintActions[req.options.blueprintAction]) {
+            let args = Array.from(arguments);
+
+            if (!req.options || (!blueprintActions[req.options.blueprintAction] && !blueprintActions[req.options.action])) {
                 return oldSendOrNext.apply(res, arguments);
             }
 
-            let parseBlueprintOptions = req.options.parseBlueprintOptions || req._sails.config.blueprints.parseBlueprintOptions;
+            let parseBlueprintOptions = req.options.parseBlueprintOptions
+                || req._sails.config.blueprints.parseBlueprintOptions
+                || req._sails.hooks.blueprints.parseBlueprintOptions;
+
             if (!parseBlueprintOptions) {
-                sails.log.warn('[sails-count-middleware] middleware ignored, parseBlueprintOptions function not found.');
+                req._sails.log.warn('[sails-count-middleware] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+');
                 return oldSendOrNext.apply(res, arguments);
             }
 
@@ -38,6 +43,7 @@ const generate = (options = {}) => {
             let Model = req._sails.models[queryOptions.using] ;
             let criteria = Object.assign({}, queryOptions.criteria);
 
+            // sails will throw an error if I don't do this
             delete criteria.limit;
             delete criteria.skip;
             delete criteria.sort;
@@ -46,14 +52,11 @@ const generate = (options = {}) => {
                 .then(
                     (count) => {
                         res.set(headerKey, count);
+                        return oldSendOrNext.apply(res, args);
                     })
                 .catch(
                     (err) => {
-                        throw err;
-                    })
-                .finally(
-                    () => {
-                        return oldSendOrNext.apply(res, arguments);
+                        return oldSendOrNext.apply(res, [err, ...args]);
                     }
                 );
         };
