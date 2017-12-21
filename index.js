@@ -21,6 +21,7 @@ const generate = (options = {}) => {
             // todo: I really really didn't want to do that
             // but at the time of calling the middleware, req.options.blueprintAction was undefined
             // only after it gets processed by sails that these options are added
+            // https://groups.google.com/forum/#!topic/sailsjs/bMZlbWnZRu4
             oldSendOrNext = res.send;
         }
 
