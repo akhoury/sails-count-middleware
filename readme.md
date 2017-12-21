@@ -2,6 +2,9 @@
 # sails-count-middleware
 While paginating, find the total count by criteria, via an added `X-Total-Count` header to all blueprints `find` requests 
 
+![screen shot 2017-12-21 at 3 31 10 am](https://user-images.githubusercontent.com/1398375/34236288-7bd4f658-e5ff-11e7-87b7-53be1433f272.png)
+
+
 # Sails version support
 It only supports __Sails 1.x__
 
