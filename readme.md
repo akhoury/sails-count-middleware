@@ -70,6 +70,7 @@ There are 2 options that you change, just call the `generate()` function instead
 ```javascript
     addXTotalCount: require('sails-count-middleware').generate({
         blueprintActions: ['find'], // default
-        headerKey: 'X-Total-Count' // default
+        headerKey: 'X-Total-Count', // default
+        silentError: false // default
     }),
 ```

@@ -5,6 +5,7 @@ const generate = (options = {}) => {
 
     let headerKey = options.headerKey || 'X-Total-Count';
     let blueprintActions = [...(options.blueprintActions || ['find'])].reduce((hash, key) => { hash[key] = true; return hash; }, {});
+    let silentError = options.silentError || false;
 
     let middleware = function (req, res, next) {
         let now = !!(req.options && req.options.blueprintAction);
@@ -24,7 +25,7 @@ const generate = (options = {}) => {
         }
 
         let addCountThenSendOrNext = function(data) {
-            let args = Array.from(arguments);
+            let sendArgs = Array.from(arguments);
 
             if (!req.options || (!blueprintActions[req.options.blueprintAction] && !blueprintActions[req.options.action])) {
                 return oldSendOrNext.apply(res, arguments);
@@ -52,11 +53,11 @@ const generate = (options = {}) => {
                 .then(
                     (count) => {
                         res.set(headerKey, count);
-                        return oldSendOrNext.apply(res, args);
+                        return oldSendOrNext.apply(res, sendArgs);
                     })
                 .catch(
                     (err) => {
-                        return oldSendOrNext.apply(res, [err, ...args]);
+                        return oldSendOrNext.apply(res, silentError ? sendArgs : [err, ...sendArgs]);
                     }
                 );
         };
