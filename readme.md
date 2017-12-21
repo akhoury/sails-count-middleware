@@ -32,7 +32,7 @@ middleware: {
 ```
 
 # Advanced Usage
-You can create a policy, in say we called it `api/policies/addCount.js`
+You can create a policy, say we called it `api/policies/addCount.js`
 ```javascript
  module.exports = require('sails-count-middleware')
 ```
