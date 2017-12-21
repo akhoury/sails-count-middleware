@@ -66,7 +66,7 @@ Connection: keep-alive
 
 # Extra Options
 
-There are 2 options that you change, just call the `generate()` function instead
+There are options that you can change, just call the `generate()` function
 ```javascript
     addXTotalCount: require('sails-count-middleware').generate({
         // if you want to add an action i.e. 'user/search' or whatever
