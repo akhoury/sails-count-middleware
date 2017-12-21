@@ -6,7 +6,7 @@ While paginating, find the total count by criteria, via an added `X-Total-Count`
 
 
 # Sails version support
-It only supports __Sails 1.x__
+It only supports __Sails 1.x+__
 
 # Basic Usage
 
@@ -69,8 +69,13 @@ Connection: keep-alive
 There are 2 options that you change, just call the `generate()` function instead
 ```javascript
     addXTotalCount: require('sails-count-middleware').generate({
+        // if you want to add an action i.e. 'user/search' or whatever
         blueprintActions: ['find'], // default
+
+        // if you would like to call it something different
         headerKey: 'X-Total-Count', // default
+
+        // if the .count() calls fails, to throw an error or not
         silentError: false // default
     }),
 ```

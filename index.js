@@ -57,7 +57,10 @@ const generate = (options = {}) => {
                     })
                 .catch(
                     (err) => {
-                        return oldSendOrNext.apply(res, silentError ? sendArgs : [err, ...sendArgs]);
+                        if (silentError) {
+                            return oldSendOrNext.apply(res, sendArgs);
+                        }
+                        throw err;
                     }
                 );
         };
