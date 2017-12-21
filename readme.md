@@ -1,6 +1,6 @@
 
 # sails-count-middleware
-Find the count by criteria by adding an `X-Total-Count` header for all blueprints `find` calls
+While paginating, find the total count by criteria, via an added `X-Total-Count` header to all blueprints `find` requests 
 
 # Sails version support
 It only supports __Sails 1.x__
@@ -10,11 +10,13 @@ It only supports __Sails 1.x__
 ```
 npm install sails-count-middleware --save
 ```
+
 Then in your `config/http.js`
 
 ```javascript
 middleware: {
 // ....
+
     // require it with whatever name you want
     addXTotalCount: require('sails-count-middleware'),
 
