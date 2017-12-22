@@ -1,4 +1,5 @@
 
+const package = require('./package.json');
 const DEFAULT_TOTAL_COUNT_HEADER = 'X-Total-Count';
 const DEFAULT_PAGINATION_JSON_HEADER = 'X-Pagination-JSON';
 
@@ -70,9 +71,11 @@ const generate = (options = {}) => {
         }
 
         let addHeaderThenOrNext = function(data) {
-            if (!req.options || !testAction(req.options.blueprintAction || req.options.action)) {
+            let action = req.options.blueprintAction || req.options.action;
+            if (req[`__${package.name}__`] || !req.options || !testAction(action)) {
                 return oldSendOrNext.apply(res, arguments);
             }
+            req[`__${package.name}__`] = true;
 
             let sendArgs = Array.from(arguments);
 
@@ -81,26 +84,54 @@ const generate = (options = {}) => {
                 || req._sails.hooks.blueprints.parseBlueprintOptions;
 
             if (!parseBlueprintOptions) {
-                req._sails.log.warn('[sails-count-middleware] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+');
+                req._sails.log.warn(`[${package.name}] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+`);
                 return oldSendOrNext.apply(res, arguments);
             }
 
             let queryOptions = parseBlueprintOptions(req);
-            let Model = req._sails.models[queryOptions.using] ;
+            let Model = req._sails.models[queryOptions.using];
+
+            // todo: pile of sh*t part-1
+            // https://gitter.im/balderdashy/sails?at=5a3d24bcba39a53f1a903eef
+            let populatingAssociation;
+            if (/populate/.test(action) && queryOptions.alias) {
+                populatingAssociation = Model.associations.filter(association => association.alias === queryOptions.alias)[0];
+            }
+            let PopulatingAssociationModel;
+            if (populatingAssociation) {
+                PopulatingAssociationModel = req._sails.models[populatingAssociation[populatingAssociation.type]];
+            }
+            let modelAssociation;
+            if (PopulatingAssociationModel) {
+                modelAssociation = PopulatingAssociationModel.associations.filter(association => association.collection === queryOptions.using || association.model === queryOptions.using)[0];
+            }
+
             let criteria = Object.assign({}, queryOptions.criteria);
             let populates = Object.assign({}, queryOptions.populates);
 
-            let limit = criteria.limit || (populates[queryOptions.alias] || {}).limit;
-            let skip = criteria.skip || (populates[queryOptions.alias] || {}).skip;
-            let sort = criteria.sort || (populates[queryOptions.alias] || {}).sort;
+            let limit = req.param('limit') || criteria.limit || (populates[queryOptions.alias] || {}).limit;
+            let skip = req.param('skip') || criteria.skip || (populates[queryOptions.alias] || {}).skip;
+            let sort = req.param('sort') || criteria.sort || (populates[queryOptions.alias] || {}).sort;
 
             // sails will throw an error if I don't do this
             delete criteria.limit;
             delete criteria.skip;
             delete criteria.sort;
 
-            return Model.count(criteria)
-                .then(
+            let promise;
+
+            if (PopulatingAssociationModel && criteria.where && criteria.where.id && modelAssociation) {
+                // todo: pile of sh*t part-2
+                let id = criteria.where.id;
+                delete criteria.where.id;
+                let associationCriteria = Object.assign({}, criteria);
+                associationCriteria.where[modelAssociation.alias] = [id];
+                promise = PopulatingAssociationModel.count(associationCriteria);
+            } else {
+                promise = Model.count(criteria);
+            }
+
+            promise.then(
                     (count) => {
                         if (totalCountHeader) {
                             res.set(totalCountHeader, count);
@@ -117,10 +148,10 @@ const generate = (options = {}) => {
                     })
                 .catch(
                     (err) => {
-                        if (silentError) {
-                            return oldSendOrNext.apply(res, sendArgs);
+                        if (! silentError) {
+                            req._sails.log.error(`[${package.name}] Was not able to get count for '${req.originalUrl}'\n${err.toString()}`);
                         }
-                        throw err;
+                        return oldSendOrNext.apply(res, sendArgs);
                     }
                 );
         };
