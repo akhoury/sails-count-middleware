@@ -50,7 +50,7 @@ UserController: {
 
 There are options that you can change, just call the `generate()` function
 ```javascript
-    addCount: require('sails-count-middleware').generate({
+    require('sails-count-middleware').generate({
         // if you want to add/remove an action i.e. 'user/search' or whatever
         // the array can contain a string for exact match or a regular expression for a pattern
         // if you use this options, the array you use will override the default, it will NOT concat
@@ -104,7 +104,7 @@ Connection: keep-alive
 # Client side node
 You can use this header however you like, but I recommend the following if you do not want to change the `response.body` that comes back from the __sails__ server.
 
-Just augment that array with a [__non-enumerable__](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty#Enumerable_attribute) `__pagination__` property, this way
+Just augment that array with a [__non-enumerable__](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty#Enumerable_attribute) property, say we call it, `__pagination__`, this way
 when you iterate over or enumerate that array, that property won't be part of that iteration ([*in most cases*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties)), but you can still access it `response.body.__pagination__.count`
 
 ```javascript
