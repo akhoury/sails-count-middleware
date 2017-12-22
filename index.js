@@ -3,10 +3,19 @@ const DEFAULT_TOTAL_COUNT_HEADER = 'X-Total-Count';
 const DEFAULT_PAGINATION_JSON_HEADER = 'X-Pagination-JSON';
 
 const defaults = {
-    actions: ['find', 'populate'],
+    actions: ['find', 'populate', /^.*\/(find|populate)$/],
     totalCountHeader: true,
+    paginationHeader: false,
     paginationJsonHeader: false,
     silentError: false
+};
+
+const isRegExp = (value) => {
+    return value instanceof RegExp;
+};
+
+const isNotRegExp = (value) => {
+    return !isRegExp(value);
 };
 
 const generate = (options = {}) => {
@@ -24,11 +33,26 @@ const generate = (options = {}) => {
             ? options.paginationJsonHeader
             : DEFAULT_PAGINATION_JSON_HEADER;
 
-    let actions = [...(options.actions || [])].reduce((hash, key) => { hash[key] = true; return hash; }, {});
+    options.actions = [].concat(options.actions);
+
+    let actions = {
+        map: [...options.actions].filter(isNotRegExp).reduce((hash, key) => { hash[key] = true; return hash; }, {}),
+        regexps: [...options.actions].filter(isRegExp)
+    };
+
+    const testAction = function (action) {
+        if (actions.map[action]) {
+            return true;
+        }
+        if (actions.regexps.some((re) => re.test(action))) {
+            return true;
+        }
+    };
+
     let silentError = options.silentError;
 
     let middleware = function (req, res, next) {
-        let now = !!(req.options && req.options.blueprintAction);
+        let now = !!(req.options && (req.options.blueprintAction || req.options.action));
         let oldSendOrNext;
 
         // if we have options, execute now
@@ -46,11 +70,11 @@ const generate = (options = {}) => {
         }
 
         let addHeaderThenOrNext = function(data) {
-            let sendArgs = Array.from(arguments);
-
-            if (!req.options || (!actions[req.options.blueprintAction] && !actions[req.options.action])) {
+            if (!req.options || !testAction(req.options.blueprintAction || req.options.action)) {
                 return oldSendOrNext.apply(res, arguments);
             }
+
+            let sendArgs = Array.from(arguments);
 
             let parseBlueprintOptions = req.options.parseBlueprintOptions
                 || req._sails.config.blueprints.parseBlueprintOptions
@@ -64,10 +88,11 @@ const generate = (options = {}) => {
             let queryOptions = parseBlueprintOptions(req);
             let Model = req._sails.models[queryOptions.using] ;
             let criteria = Object.assign({}, queryOptions.criteria);
+            let populates = Object.assign({}, queryOptions.populates);
 
-            let limit = queryOptions.criteria.limit || (queryOptions.populates[queryOptions.alias] || {}).limit;
-            let skip = queryOptions.criteria.skip || (queryOptions.populates[queryOptions.alias] || {}).skip;
-            let sort = queryOptions.criteria.sort || (queryOptions.populates[queryOptions.alias] || {}).sort;
+            let limit = criteria.limit || (populates[queryOptions.alias] || {}).limit;
+            let skip = criteria.skip || (populates[queryOptions.alias] || {}).skip;
+            let sort = criteria.sort || (populates[queryOptions.alias] || {}).sort;
 
             // sails will throw an error if I don't do this
             delete criteria.limit;
