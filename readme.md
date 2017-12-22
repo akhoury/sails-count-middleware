@@ -46,6 +46,38 @@ UserController: {
 }
 ```
 
+# Extra Options
+
+There are options that you can change, just call the `generate()` function
+```javascript
+    addCount: require('sails-count-middleware').generate({
+        // if you want to add/remove an action i.e. 'user/search' or whatever
+        // the array can contain a string for exact match or a regular expression for a pattern
+        // if you use this options, the array you use will override the default, it will NOT concat
+        // this is the default,
+        // it will match all the usual :model/find, :model/:id/:association/populate
+        actions: ['find', 'populate', /^.*\/(find|populate)$/]
+
+        // you can rename the headers by passing a string
+        // or disable them by setting them to false
+
+        // default option value is true
+        // default header name is 'X-Total-Count'
+        totalCountHeader:  'X-Count', // this will enable and rename the header
+        totalCountHeader: false, // this disable this header
+        totalCountHeader: true, // this enable it with the default name
+
+        // default option value is false
+        // default header name is 'X-Pagination-JSON'
+        paginationJsonHeader: 'X-PJSON', // this will enable and rename the header
+        paginationJsonHeader: false, // this disable this header
+        paginationJsonHeader: true, // this enable it with the default name
+
+        // if the .count() calls fails, to throw an error or not
+        silentError: false // default
+    }),
+```
+
 # Result
 Then make a `GET` call to a `find` blueprint action, with any criteria, even with limit
 #### Request
@@ -102,36 +134,4 @@ when you iterate over or enumerate that array, that property won't be part of th
                 console.log(`[index:${i}] user: ${user.name}`);
             });
         });
-```
-
-# Extra Options
-
-There are options that you can change, just call the `generate()` function
-```javascript
-    addCount: require('sails-count-middleware').generate({
-        // if you want to add/remove an action i.e. 'user/search' or whatever
-        // the array can contain a string for exact match or a regular expression for a pattern
-        // if you use this options, the array you use will override the default, it will NOT concat
-        // this is the default,
-        // it will match all the usual :model/find, :model/:id/:association/populate
-        actions: ['find', 'populate', /^.*\/(find|populate)$/]
-
-        // you can rename the headers by passing a string
-        // or disable them by setting them to false
-
-        // default option value is true
-        // default header name is 'X-Total-Count'
-        totalCountHeader:  'X-Count', // this will enable and rename the header
-        totalCountHeader: false, // this disable this header
-        totalCountHeader: true, // this enable it with the default name
-
-        // default option value is false
-        // default header name is 'X-Pagination-JSON'
-        paginationJsonHeader: 'X-PJSON', // this will enable and rename the header
-        paginationJsonHeader: false, // this disable this header
-        paginationJsonHeader: true, // this enable it with the default name
-
-        // if the .count() calls fails, to throw an error or not
-        silentError: false // default
-    }),
 ```
