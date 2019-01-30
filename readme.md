@@ -101,7 +101,7 @@ Connection: keep-alive
 ]
 ```
 
-# Client side node
+# Client side note
 You can use this header however you like, but I recommend the following if you do not want to change the `response.body` that comes back from the __sails__ server.
 
 Just augment that array with a [__non-enumerable__](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty#Enumerable_attribute) property, say we call it, `__pagination__`, this way
