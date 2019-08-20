@@ -135,6 +135,7 @@ const generate = (options = {}) => {
                     (count) => {
                         if (totalCountHeader) {
                             res.set(totalCountHeader, count);
+                            res.header('Access-Control-Expose-Headers', totalCountHeader)
                         }
                         if (paginationJsonHeader) {
                             res.set(paginationJsonHeader, JSON.stringify({
